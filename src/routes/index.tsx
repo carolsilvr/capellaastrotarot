@@ -95,10 +95,28 @@ const testimonials = [
   },
 ];
 
+import { supabase } from "@/integrations/supabase/client";
+
 function Home() {
   const [dark, setDark] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [testimonial, setTestimonial] = useState(0);
+
+  const [announcementBanner, setAnnouncementBanner] = useState<string | null>(null);
+  const [announcementActive, setAnnouncementActive] = useState(false);
+  const [customHeroTitle, setCustomHeroTitle] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.from('site_settings').select('*').then(({ data }) => {
+      if (data) {
+        data.forEach((item: any) => {
+          if (item.key === 'announcement_banner') setAnnouncementBanner(typeof item.value === 'string' ? item.value : JSON.stringify(item.value).replace(/"/g, ''));
+          if (item.key === 'announcement_active') setAnnouncementActive(Boolean(item.value));
+          if (item.key === 'hero_title') setCustomHeroTitle(typeof item.value === 'string' ? item.value : JSON.stringify(item.value).replace(/"/g, ''));
+        });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -111,6 +129,12 @@ function Home() {
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
+      {announcementActive && announcementBanner && (
+        <div className="bg-gradient-to-r from-amber-600 to-purple-800 text-amber-100 text-xs py-2 px-4 text-center font-medium shadow-inner tracking-wide">
+          ✨ {announcementBanner}
+        </div>
+      )}
+
       {/* Nav */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-background/80 border-b border-border/60">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
