@@ -15,8 +15,8 @@ import {
 import heroImg from "@/assets/hero-celestial.jpg";
 import tarotImg from "@/assets/method-tarot.jpg";
 import astroImg from "@/assets/method-astro.jpg";
-import numeroImg from "@/assets/method-numero.jpg";
-import matrizImg from "@/assets/method-matriz.jpg";
+import horaImg from "@/assets/method-hora.jpg";
+import acompanhamentoImg from "@/assets/method-acompanhamento.jpg";
 import mentoriaImg from "@/assets/method-mentoria.jpg";
 
 export const Route = createFileRoute("/")({
@@ -25,29 +25,34 @@ export const Route = createFileRoute("/")({
 
 const methods = [
   {
+    slug: "tarot",
     name: "tarot",
     image: tarotImg,
     text: "os arcanos como espelho simbólico do momento presente — clareza, direção e leitura de ciclos.",
   },
   {
+    slug: "mapa-astral",
     name: "mapa astral",
     image: astroImg,
     text: "o desenho do céu no instante do seu nascimento como mapa de talentos, ritmos e desafios.",
   },
   {
-    name: "numerologia",
-    image: numeroImg,
-    text: "os números por trás do seu nome e data — vocação, propósito e ciclos pessoais.",
+    slug: "hora-dedicada",
+    name: "hora dedicada",
+    image: horaImg,
+    text: "uma hora inteira para uma questão específica — decisão profissional, relação, mudança de fase.",
   },
   {
-    name: "matriz do destino",
-    image: matrizImg,
-    text: "um sistema geométrico contemporâneo para compreender energias pessoais e relacionais.",
+    slug: "acompanhamento-mensal",
+    name: "acompanhamento mensal",
+    image: acompanhamentoImg,
+    text: "quatro encontros no mês para integrar as leituras ao cotidiano, com continuidade e método.",
   },
   {
+    slug: "mentorias",
     name: "mentorias",
     image: mentoriaImg,
-    text: "encontros contínuos para integrar as leituras à sua vida prática, com escuta e método.",
+    text: "processos mais longos, para quem quer se aprofundar no estudo simbólico com escuta e direção.",
   },
 ];
 
