@@ -231,7 +231,7 @@ function Home() {
             {methods.map((m) => (
               <a
                 key={m.name}
-                href="/agendar"
+                href={`/servicos/${m.slug}`}
                 className="group relative overflow-hidden rounded-sm border border-border bg-card hover:border-accent transition-all duration-500"
               >
                 <div className="aspect-[4/5] overflow-hidden">
