@@ -154,8 +154,8 @@ function BookingPage() {
       const [svc, rul, blk, bkd] = await Promise.all([
         supabase.from("services").select("id, slug, name, short_description, duration_minutes, price_cents").eq("active", true).order("sort_order"),
         supabase.from("availability_rules").select("weekday, start_time, end_time").eq("active", true),
-        supabase.from("availability_blocks").select("starts_at, ends_at").gte("ends_at", from.toISOString()).lte("starts_at", to.toISOString()),
-        supabase.rpc("get_booked_ranges", { from_ts: from.toISOString(), to_ts: to.toISOString() }),
+        supabase.from("public_availability_blocks").select("starts_at, ends_at").gte("ends_at", from.toISOString()).lte("starts_at", to.toISOString()),
+        supabase.from("booked_time_ranges").select("starts_at, ends_at").gte("ends_at", from.toISOString()).lte("starts_at", to.toISOString()),
       ]);
       if (cancelled) return;
       if (svc.error) toast.error("Não foi possível carregar os serviços.");
