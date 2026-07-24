@@ -133,7 +133,7 @@ function Home() {
               {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </button>
             <a
-              href="#agendar"
+              href="/agendar"
               className="hidden sm:inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 text-sm hover:bg-primary transition-colors"
             >
               agendar
@@ -163,7 +163,7 @@ function Home() {
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <a
-                href="#agendar"
+                href="/agendar"
                 className="group inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-7 py-3.5 text-sm hover:opacity-90 transition-all"
               >
                 agendar uma leitura
@@ -231,7 +231,7 @@ function Home() {
             {methods.map((m) => (
               <a
                 key={m.name}
-                href="#agendar"
+                href="/agendar"
                 className="group relative overflow-hidden rounded-sm border border-border bg-card hover:border-accent transition-all duration-500"
               >
                 <div className="aspect-[4/5] overflow-hidden">
