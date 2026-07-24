@@ -9,10 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AgendarRouteImport } from './routes/agendar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicosSlugRouteImport } from './routes/servicos.$slug'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgendarRoute = AgendarRouteImport.update({
   id: '/agendar',
   path: '/agendar',
@@ -28,39 +35,64 @@ const ServicosSlugRoute = ServicosSlugRouteImport.update({
   path: '/servicos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agendar': typeof AgendarRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
   '/servicos/$slug': typeof ServicosSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agendar': typeof AgendarRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
   '/servicos/$slug': typeof ServicosSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agendar': typeof AgendarRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
   '/servicos/$slug': typeof ServicosSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agendar' | '/servicos/$slug'
+  fullPaths: '/' | '/agendar' | '/blog' | '/blog/$slug' | '/servicos/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agendar' | '/servicos/$slug'
-  id: '__root__' | '/' | '/agendar' | '/servicos/$slug'
+  to: '/' | '/agendar' | '/blog' | '/blog/$slug' | '/servicos/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/agendar'
+    | '/blog'
+    | '/blog/$slug'
+    | '/servicos/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgendarRoute: typeof AgendarRoute
+  BlogRoute: typeof BlogRouteWithChildren
   ServicosSlugRoute: typeof ServicosSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agendar': {
       id: '/agendar'
       path: '/agendar'
@@ -82,12 +114,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
   }
 }
+
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgendarRoute: AgendarRoute,
+  BlogRoute: BlogRouteWithChildren,
   ServicosSlugRoute: ServicosSlugRoute,
 }
 export const routeTree = rootRouteImport
