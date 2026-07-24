@@ -122,6 +122,7 @@ function Home() {
             <a href="#processo" className="hover:text-foreground transition-colors">como funciona</a>
             <a href="#depoimentos" className="hover:text-foreground transition-colors">depoimentos</a>
             <a href="#faq" className="hover:text-foreground transition-colors">perguntas</a>
+            <a href="/blog" className="hover:text-foreground transition-colors">blog</a>
             <a href="#historia" className="hover:text-foreground transition-colors">minha história</a>
           </div>
           <div className="flex items-center gap-3">
@@ -231,7 +232,7 @@ function Home() {
             {methods.map((m) => (
               <a
                 key={m.name}
-                href="/agendar"
+                href={`/servicos/${m.slug}`}
                 className="group relative overflow-hidden rounded-sm border border-border bg-card hover:border-accent transition-all duration-500"
               >
                 <div className="aspect-[4/5] overflow-hidden">
