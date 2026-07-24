@@ -403,7 +403,7 @@ function Home() {
             </p>
             <div className="mt-10 flex flex-wrap gap-4 justify-center">
               <a
-                href="#"
+                href="/agendar"
                 className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-foreground px-8 py-4 text-sm hover:opacity-90 transition-opacity"
               >
                 <Calendar className="size-4" />
