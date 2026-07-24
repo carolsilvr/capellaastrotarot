@@ -122,6 +122,7 @@ function Home() {
             <a href="#processo" className="hover:text-foreground transition-colors">como funciona</a>
             <a href="#depoimentos" className="hover:text-foreground transition-colors">depoimentos</a>
             <a href="#faq" className="hover:text-foreground transition-colors">perguntas</a>
+            <a href="/blog" className="hover:text-foreground transition-colors">blog</a>
             <a href="#historia" className="hover:text-foreground transition-colors">minha história</a>
           </div>
           <div className="flex items-center gap-3">
