@@ -171,16 +171,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      booked_time_ranges: {
+        Row: {
+          ends_at: string | null
+          starts_at: string | null
+        }
+        Insert: {
+          ends_at?: string | null
+          starts_at?: string | null
+        }
+        Update: {
+          ends_at?: string | null
+          starts_at?: string | null
+        }
+        Relationships: []
+      }
+      public_availability_blocks: {
+        Row: {
+          ends_at: string | null
+          starts_at: string | null
+        }
+        Insert: {
+          ends_at?: string | null
+          starts_at?: string | null
+        }
+        Update: {
+          ends_at?: string | null
+          starts_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      get_booked_ranges: {
-        Args: { from_ts: string; to_ts: string }
-        Returns: {
-          ends_at: string
-          starts_at: string
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       booking_status: "pending" | "confirmed" | "cancelled" | "completed"
