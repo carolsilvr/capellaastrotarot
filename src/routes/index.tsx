@@ -124,6 +124,7 @@ function Home() {
             <a href="#faq" className="hover:text-foreground transition-colors">perguntas</a>
             <a href="/blog" className="hover:text-foreground transition-colors">blog</a>
             <a href="#historia" className="hover:text-foreground transition-colors">minha história</a>
+          </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setDark((d) => !d)}
@@ -145,10 +146,9 @@ function Home() {
               agendar
             </a>
           </div>
-
-
         </nav>
       </header>
+
 
       {/* Hero */}
       <section id="top" className="relative overflow-hidden">
