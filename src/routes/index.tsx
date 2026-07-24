@@ -15,8 +15,8 @@ import {
 import heroImg from "@/assets/hero-celestial.jpg";
 import tarotImg from "@/assets/method-tarot.jpg";
 import astroImg from "@/assets/method-astro.jpg";
-import numeroImg from "@/assets/method-numero.jpg";
-import matrizImg from "@/assets/method-matriz.jpg";
+import horaImg from "@/assets/method-hora.jpg";
+import acompanhamentoImg from "@/assets/method-acompanhamento.jpg";
 import mentoriaImg from "@/assets/method-mentoria.jpg";
 
 export const Route = createFileRoute("/")({
@@ -25,29 +25,34 @@ export const Route = createFileRoute("/")({
 
 const methods = [
   {
+    slug: "tarot",
     name: "tarot",
     image: tarotImg,
     text: "os arcanos como espelho simbólico do momento presente — clareza, direção e leitura de ciclos.",
   },
   {
+    slug: "mapa-astral",
     name: "mapa astral",
     image: astroImg,
     text: "o desenho do céu no instante do seu nascimento como mapa de talentos, ritmos e desafios.",
   },
   {
-    name: "numerologia",
-    image: numeroImg,
-    text: "os números por trás do seu nome e data — vocação, propósito e ciclos pessoais.",
+    slug: "hora-dedicada",
+    name: "hora dedicada",
+    image: horaImg,
+    text: "uma hora inteira para uma questão específica — decisão profissional, relação, mudança de fase.",
   },
   {
-    name: "matriz do destino",
-    image: matrizImg,
-    text: "um sistema geométrico contemporâneo para compreender energias pessoais e relacionais.",
+    slug: "acompanhamento-mensal",
+    name: "acompanhamento mensal",
+    image: acompanhamentoImg,
+    text: "quatro encontros no mês para integrar as leituras ao cotidiano, com continuidade e método.",
   },
   {
+    slug: "mentorias",
     name: "mentorias",
     image: mentoriaImg,
-    text: "encontros contínuos para integrar as leituras à sua vida prática, com escuta e método.",
+    text: "processos mais longos, para quem quer se aprofundar no estudo simbólico com escuta e direção.",
   },
 ];
 
@@ -128,7 +133,7 @@ function Home() {
               {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </button>
             <a
-              href="#agendar"
+              href="/agendar"
               className="hidden sm:inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 text-sm hover:bg-primary transition-colors"
             >
               agendar
@@ -158,7 +163,7 @@ function Home() {
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <a
-                href="#agendar"
+                href="/agendar"
                 className="group inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-7 py-3.5 text-sm hover:opacity-90 transition-all"
               >
                 agendar uma leitura
@@ -226,7 +231,7 @@ function Home() {
             {methods.map((m) => (
               <a
                 key={m.name}
-                href="#agendar"
+                href="/agendar"
                 className="group relative overflow-hidden rounded-sm border border-border bg-card hover:border-accent transition-all duration-500"
               >
                 <div className="aspect-[4/5] overflow-hidden">
@@ -398,7 +403,7 @@ function Home() {
             </p>
             <div className="mt-10 flex flex-wrap gap-4 justify-center">
               <a
-                href="#"
+                href="/agendar"
                 className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-foreground px-8 py-4 text-sm hover:opacity-90 transition-opacity"
               >
                 <Calendar className="size-4" />

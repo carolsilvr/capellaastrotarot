@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "leituras de tarot, mapa astral, numerologia e matriz do destino como ferramentas de reflexão, clareza e desenvolvimento pessoal.",
+          "leituras de tarot, mapa astral, hora dedicada e acompanhamento mensal como ferramentas de reflexão, clareza e desenvolvimento pessoal.",
       },
       { name: "author", content: "capella astrotarot" },
       { property: "og:title", content: "capella · tarot, astrologia e autoconhecimento" },
