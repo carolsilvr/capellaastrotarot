@@ -134,7 +134,27 @@ function ClienteDashboardPage() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8 space-y-8">
+        {/* Admin Shortcut Banner */}
+        {role === 'admin' && (
+          <div className="bg-gradient-to-r from-amber-600/30 to-purple-900/40 border border-amber-500/50 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-6 h-6 text-amber-400 shrink-0" />
+              <div>
+                <h2 className="text-sm font-semibold text-amber-200">Sua conta tem nível de Taróloga / Administradora</h2>
+                <p className="text-xs text-slate-300">Gerencie a sua agenda de clientes, edite os textos da home e publique no blog pelo CMS.</p>
+              </div>
+            </div>
+            <Link
+              to="/admin"
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg flex items-center gap-2 shrink-0 transition-all"
+            >
+              <span>Abrir Painel Admin (CMS)</span>
+            </Link>
+          </div>
+        )}
+
         {/* Welcome Header */}
+
         <div className="bg-gradient-to-r from-[#170f2b] to-[#120a21] border border-purple-900/40 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden shadow-xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 rounded-full blur-3xl pointer-events-none" />
           

@@ -16,15 +16,19 @@ function AuthLoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, role, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  // If already logged in, redirect
+  // If already logged in, redirect based on role
   React.useEffect(() => {
     if (user) {
-      navigate({ to: '/cliente' });
+      if (isAdmin || role === 'admin') {
+        navigate({ to: '/admin' });
+      } else {
+        navigate({ to: '/cliente' });
+      }
     }
-  }, [user, navigate]);
+  }, [user, role, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +42,17 @@ function AuthLoginPage() {
         setErrorMsg(error.message || 'Falha ao efetuar login. Verifique suas credenciais.');
       } else {
         setSuccessMsg('Login realizado com sucesso! Redirecionando...');
-        setTimeout(() => navigate({ to: '/cliente' }), 1000);
+        // Small delay to allow role fetching
+        setTimeout(() => {
+          if (isAdmin || role === 'admin') {
+            navigate({ to: '/admin' });
+          } else {
+            navigate({ to: '/cliente' });
+          }
+        }, 800);
       }
     } else {
+
       if (!fullName) {
         setErrorMsg('Por favor, informe seu nome completo.');
         setLoading(false);
