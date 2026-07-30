@@ -95,16 +95,18 @@ const testimonials = [
   },
 ];
 
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 function Home() {
   const [dark, setDark] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [testimonial, setTestimonial] = useState(0);
 
+  const { user, isAdmin } = useAuth();
   const [announcementBanner, setAnnouncementBanner] = useState<string | null>(null);
   const [announcementActive, setAnnouncementActive] = useState(false);
   const [customHeroTitle, setCustomHeroTitle] = useState<string | null>(null);
+
 
   useEffect(() => {
     supabase.from('site_settings').select('*').then(({ data }) => {
@@ -157,12 +159,29 @@ function Home() {
             >
               {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </button>
-            <a
-              href="/auth/login"
-              className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-accent transition-colors"
-            >
-              área do cliente
-            </a>
+            {isAdmin ? (
+
+              <a
+                href="/admin"
+                className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-purple-600 text-white font-medium px-4 py-2 text-sm shadow-md hover:opacity-90 transition-all border border-amber-300/40"
+              >
+                ✨ painel admin (cms)
+              </a>
+            ) : user ? (
+              <a
+                href="/cliente"
+                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-accent transition-colors"
+              >
+                área do cliente
+              </a>
+            ) : (
+              <a
+                href="/auth/login"
+                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-accent transition-colors"
+              >
+                entrar / cms
+              </a>
+            )}
             <a
               href="/agendar"
               className="hidden sm:inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 text-sm hover:bg-primary transition-colors"
@@ -170,6 +189,7 @@ function Home() {
               agendar
             </a>
           </div>
+
         </nav>
       </header>
 

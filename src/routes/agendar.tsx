@@ -519,32 +519,52 @@ function BookingPage() {
           </section>
         )}
 
-        {/* Step 4: confirmation */}
+        {/* Step 4: confirmation + Stripe payment link */}
         {step === 4 && confirmedId && selectedService && selectedSlot && (
           <section className="text-center py-12">
-            <div className="inline-flex size-14 items-center justify-center rounded-full bg-accent/10 text-accent mb-6">
+            <div className="inline-flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 mb-6">
               <Check className="size-6" />
             </div>
-            <h2 className="text-serif text-3xl sm:text-4xl mb-4">reserva registrada.</h2>
+            <h2 className="text-serif text-3xl sm:text-4xl mb-4">reserva registrada com sucesso!</h2>
             <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              enviamos os próximos passos e o link de pagamento para <span className="text-foreground">{form.email}</span>.
-              seu horário fica reservado por 1 hora até o pagamento ser aprovado.
+              Sua reserva foi gravada no sistema. Para garantir o horário, efetue o pagamento seguro via Stripe abaixo (Cartão de Crédito ou Pix):
             </p>
-            <div className="mt-8 mx-auto max-w-md text-left rounded-sm border border-border bg-card p-6 text-sm space-y-2">
-              <p><span className="text-muted-foreground">serviço:</span> {selectedService.name}</p>
+
+            <div className="mt-8 mx-auto max-w-md text-left rounded-xl border border-accent/40 bg-card p-6 text-sm space-y-3 shadow-xl">
+              <p><span className="text-muted-foreground font-medium">Serviço:</span> {selectedService.name}</p>
               <p>
-                <span className="text-muted-foreground">quando:</span>{" "}
+                <span className="text-muted-foreground font-medium">Data e Hora:</span>{" "}
                 {selectedSlot.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} às{" "}
                 {String(selectedSlot.getHours()).padStart(2, "0")}:{String(selectedSlot.getMinutes()).padStart(2, "0")}
               </p>
-              <p><span className="text-muted-foreground">valor:</span> {currency(selectedService.price_cents)}</p>
-              <p><span className="text-muted-foreground">código:</span> {confirmedId.slice(0, 8)}</p>
+              <p><span className="text-muted-foreground font-medium">Valor Total:</span> <span className="text-amber-400 font-bold text-base">{currency(selectedService.price_cents)}</span></p>
+              <p><span className="text-muted-foreground font-medium">Código do Agendamento:</span> <span className="font-mono text-xs text-slate-300">{confirmedId}</span></p>
+
+              <div className="pt-4 border-t border-border/60">
+                <a
+                  href={`https://checkout.stripe.com/pay?client_reference_id=${confirmedId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all"
+                >
+                  <CreditCard className="size-4" />
+                  <span>Pagar Agora no Stripe (Cartão / Pix)</span>
+                  <ArrowRight className="size-4" />
+                </a>
+                <p className="mt-2 text-[11px] text-center text-muted-foreground">
+                  🔒 Processamento seguro via Stripe com confirmação automática.
+                </p>
+              </div>
             </div>
-            <Link to="/" className="mt-10 inline-flex items-center gap-2 text-sm text-accent hover:text-foreground transition-colors">
-              voltar ao início <ArrowRight className="size-4" />
-            </Link>
+
+            <div className="mt-10">
+              <Link to="/" className="inline-flex items-center gap-2 text-sm text-accent hover:text-foreground transition-colors">
+                voltar ao início <ArrowRight className="size-4" />
+              </Link>
+            </div>
           </section>
         )}
+
 
         {/* Hidden — for typing hints, avoids unused var */}
         <div className="hidden">{isoDate(new Date())}</div>
