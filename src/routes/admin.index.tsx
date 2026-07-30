@@ -201,7 +201,7 @@ function AdminDashboardPage() {
         supabase.from('site_settings').upsert({ key: 'hero_title', value: heroTitle }),
         supabase.from('site_settings').upsert({ key: 'hero_subtitle', value: heroSubtitle }),
         supabase.from('site_settings').upsert({ key: 'announcement_banner', value: announcementBanner }),
-        supabase.from('site_settings').upsert({ key: 'announcement_active', value: announcementActive }),
+        supabase.from('site_settings').upsert({ key: 'announcement_active', value: String(announcementActive) }),
         supabase.from('site_settings').upsert({ key: 'contact_whatsapp', value: contactWhatsapp }),
         supabase.from('site_settings').upsert({ key: 'contact_instagram', value: contactInstagram }),
       ]);
