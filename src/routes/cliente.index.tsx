@@ -59,7 +59,7 @@ function ClienteDashboardPage() {
             duration_minutes
           )
         `)
-        .eq('customer_email', user?.email)
+        .eq('customer_email', user?.email ?? '')
         .order('starts_at', { ascending: false });
 
       if (error) {
