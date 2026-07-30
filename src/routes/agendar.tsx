@@ -276,32 +276,54 @@ function BookingPage() {
         {/* Step 1: service */}
         {!loading && step === 1 && (
           <section>
-            <h2 className="text-serif text-2xl mb-6">escolha o serviço</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {(services ?? []).map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => {
-                    setSelectedService(s);
-                    setSelectedDate(null);
-                    setSelectedSlot(null);
-                    setStep(2);
-                  }}
-                  className="group text-left rounded-sm border border-border bg-card p-6 hover:border-accent transition-colors"
-                >
-                  <div className="flex items-baseline justify-between gap-4">
-                    <h3 className="text-serif text-xl">{s.name}</h3>
-                    <span className="text-sm text-accent">{currency(s.price_cents)}</span>
+            <h2 className="text-serif text-2xl mb-8">escolha o serviço</h2>
+
+            {(!services || services.length === 0) && (
+              <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+                Nenhum serviço disponível no momento. Configure os serviços no painel CMS.
+              </div>
+            )}
+
+            {(['tarot', 'astrologia'] as const).map(cat => {
+              const catServices = (services ?? []).filter(s => s.category === cat || (cat === 'tarot' && !s.category));
+              if (catServices.length === 0) return null;
+              return (
+                <div key={cat} className="mb-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">
+                      {cat === 'tarot' ? '🔮 Tarot' : '✨ Astrologia'}
+                    </span>
+                    <div className="flex-1 h-px bg-border/60" />
                   </div>
-                  <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.short_description}</p>
-                  <p className="mt-4 text-xs text-muted-foreground inline-flex items-center gap-1.5">
-                    <Clock className="size-3.5" /> {s.duration_minutes} minutos
-                  </p>
-                </button>
-              ))}
-            </div>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {catServices.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setSelectedService(s);
+                          setSelectedDate(null);
+                          setSelectedSlot(null);
+                          setStep(2);
+                        }}
+                        className="group text-left rounded-sm border border-border bg-card p-5 hover:border-accent transition-colors"
+                      >
+                        <div className="flex items-baseline justify-between gap-4 mb-3">
+                          <h3 className="text-serif text-lg leading-tight">{s.name}</h3>
+                          <span className="text-base font-medium text-accent shrink-0">{currency(s.price_cents)}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-4">{s.short_description}</p>
+                        <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+                          <Clock className="size-3.5" /> {s.duration_minutes} minutos
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </section>
         )}
+
 
         {/* Step 2: date + time */}
         {!loading && step === 2 && selectedService && (
