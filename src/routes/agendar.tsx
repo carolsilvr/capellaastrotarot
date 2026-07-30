@@ -9,6 +9,7 @@ import {
   Check,
   Clock,
   CreditCard,
+  ExternalLink,
   Loader2,
   QrCode,
   Sparkles,
@@ -16,6 +17,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { createBooking } from "@/lib/booking.functions";
+import { createStripeCheckout } from "@/lib/stripe.checkout";
 
 export const Route = createFileRoute("/agendar")({
   head: () => ({
@@ -142,8 +144,11 @@ function BookingPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [submitting, setSubmitting] = useState(false);
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const submit = useServerFn(createBooking);
+  const checkout = useServerFn(createStripeCheckout);
 
   useEffect(() => {
     let cancelled = false;
@@ -213,6 +218,7 @@ function BookingPage() {
     }
     setSubmitting(true);
     try {
+      // 1. Cria a reserva no banco
       const res = await submit({
         data: {
           serviceId: selectedService.id,
@@ -224,8 +230,33 @@ function BookingPage() {
           paymentMethod,
         },
       });
-      setConfirmedId(res.bookingId);
+      const bookingId = res.bookingId;
+      setConfirmedId(bookingId);
       setStep(4);
+
+      // 2. Cria a Checkout Session real no Stripe e redireciona
+      setCheckoutLoading(true);
+      try {
+        const origin = window.location.origin;
+        const stripeRes = await checkout({
+          data: {
+            bookingId,
+            serviceId: selectedService.id,
+            customerName: form.name.trim(),
+            customerEmail: form.email.trim(),
+            successUrl: `${origin}/agendar/sucesso?booking=${bookingId}`,
+            cancelUrl: `${origin}/agendar`,
+          },
+        });
+        // Redireciona automaticamente para o checkout do Stripe
+        window.location.href = stripeRes.checkoutUrl;
+      } catch (stripeErr) {
+        const msg = stripeErr instanceof Error ? stripeErr.message : "Erro ao gerar link do Stripe.";
+        // Não bloqueia — mostra aviso mas mantém a reserva registrada
+        toast.error(msg);
+        setCheckoutUrl(null);
+        setCheckoutLoading(false);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "erro ao criar reserva.";
       toast.error(message);
@@ -541,51 +572,59 @@ function BookingPage() {
           </section>
         )}
 
-        {/* Step 4: confirmation + Stripe payment link */}
+        {/* Step 4: Redirecionando para o Stripe */}
         {step === 4 && confirmedId && selectedService && selectedSlot && (
-          <section className="text-center py-12">
-            <div className="inline-flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 mb-6">
-              <Check className="size-6" />
-            </div>
-            <h2 className="text-serif text-3xl sm:text-4xl mb-4">reserva registrada com sucesso!</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              Sua reserva foi gravada no sistema. Para garantir o horário, efetue o pagamento seguro via Stripe abaixo (Cartão de Crédito ou Pix):
-            </p>
-
-            <div className="mt-8 mx-auto max-w-md text-left rounded-xl border border-accent/40 bg-card p-6 text-sm space-y-3 shadow-xl">
-              <p><span className="text-muted-foreground font-medium">Serviço:</span> {selectedService.name}</p>
-              <p>
-                <span className="text-muted-foreground font-medium">Data e Hora:</span>{" "}
-                {selectedSlot.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} às{" "}
-                {String(selectedSlot.getHours()).padStart(2, "0")}:{String(selectedSlot.getMinutes()).padStart(2, "0")}
-              </p>
-              <p><span className="text-muted-foreground font-medium">Valor Total:</span> <span className="text-amber-400 font-bold text-base">{currency(selectedService.price_cents)}</span></p>
-              <p><span className="text-muted-foreground font-medium">Código do Agendamento:</span> <span className="font-mono text-xs text-slate-300">{confirmedId}</span></p>
-
-              <div className="pt-4 border-t border-border/60">
-                <a
-                  href={`https://checkout.stripe.com/pay?client_reference_id=${confirmedId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition-all"
-                >
-                  <CreditCard className="size-4" />
-                  <span>Pagar Agora no Stripe (Cartão / Pix)</span>
-                  <ArrowRight className="size-4" />
-                </a>
-                <p className="mt-2 text-[11px] text-center text-muted-foreground">
-                  🔒 Processamento seguro via Stripe com confirmação automática.
+          <section className="text-center py-16">
+            {checkoutLoading ? (
+              /* ── Redirecionando ── */
+              <div className="flex flex-col items-center gap-4">
+                <div className="inline-flex size-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-400">
+                  <Loader2 className="size-7 animate-spin" />
+                </div>
+                <h2 className="text-serif text-2xl">redirecionando para o pagamento…</h2>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Sua reserva foi registrada. Em segundos você será levada para a tela de pagamento seguro do Stripe.
                 </p>
               </div>
-            </div>
+            ) : (
+              /* ── Fallback: chave não configurada ── */
+              <div className="flex flex-col items-center gap-6">
+                <div className="inline-flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                  <Check className="size-6" />
+                </div>
+                <h2 className="text-serif text-3xl sm:text-4xl">reserva registrada!</h2>
 
-            <div className="mt-10">
-              <Link to="/" className="inline-flex items-center gap-2 text-sm text-accent hover:text-foreground transition-colors">
-                voltar ao início <ArrowRight className="size-4" />
-              </Link>
-            </div>
+                <div className="mx-auto max-w-md text-left rounded-xl border border-accent/40 bg-card p-6 text-sm space-y-3 shadow-xl">
+                  <p><span className="text-muted-foreground font-medium">Serviço:</span> {selectedService.name}</p>
+                  <p>
+                    <span className="text-muted-foreground font-medium">Data e Hora:</span>{" "}
+                    {selectedSlot.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} às{" "}
+                    {String(selectedSlot.getHours()).padStart(2, "0")}:{String(selectedSlot.getMinutes()).padStart(2, "0")}
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-medium">Valor:</span>{" "}
+                    <span className="text-amber-400 font-bold">{currency(selectedService.price_cents)}</span>
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-medium">Código:</span>{" "}
+                    <span className="font-mono text-xs">{confirmedId}</span>
+                  </p>
+
+                  <div className="pt-4 border-t border-border/60 text-xs text-muted-foreground space-y-2">
+                    <p className="text-amber-300 font-medium">⚠️ Configure a variável STRIPE_SECRET_KEY para ativar o pagamento automático.</p>
+                    <p>Acesse o Stripe Dashboard → Developers → API Keys → Secret key e adicione no seu painel do Lovable/Vercel.</p>
+                  </div>
+                </div>
+
+                <Link to="/" className="inline-flex items-center gap-2 text-sm text-accent hover:text-foreground transition-colors">
+                  voltar ao início <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            )}
           </section>
         )}
+
+
 
 
         {/* Hidden — for typing hints, avoids unused var */}
