@@ -628,7 +628,7 @@ function TabAgenda({ bookings, refresh, showToast }: {
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Consulta: ' + b.customer_name)}&dates=${s}/${e}&details=${encodeURIComponent((b.services?.name ?? '') + '\n' + b.customer_email + '\n' + b.customer_phone)}`;
   };
 
-  const updateStatus = async (id: string, status: Booking['status']) => {
+  const updateStatus = async (id: string, status: 'pending' | 'confirmed' | 'cancelled' | 'completed') => {
     await supabase.from('bookings').update({ status }).eq('id', id);
     showToast('Status atualizado.');
     refresh();
