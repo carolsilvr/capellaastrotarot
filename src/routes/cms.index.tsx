@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -155,47 +155,80 @@ export default function CmsStudioPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Data
   const [services, setServices] = useState<Service[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [blog, setBlog] = useState<BlogPost[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // CMS Settings
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [settingsDirty, setSettingsDirty] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) navigate({ to: '/cms/login' });
-  }, [user, authLoading, navigate]);
+    if (!authLoading) {
+      if (!user) {
+        navigate({ to: '/cms/login' });
+      } else if (!isAdmin) {
+        // Usuário logado mas não é admin — acesso negado
+        navigate({ to: '/cms/login' });
+      }
+    }
+  }, [user, isAdmin, authLoading, navigate]);
 
-  useEffect(() => { if (user) fetchAll(); }, [user]);
+  useEffect(() => { if (user && isAdmin) fetchAll(); }, [user, isAdmin]);
 
   const fetchAll = async () => {
     setLoading(true);
-    const [svcR, bkR, blgR, testR, faqR, setR] = await Promise.all([
-      supabase.from('services').select('*').order('sort_order'),
-      supabase.from('bookings').select('*, services(name)').order('starts_at', { ascending: false }).limit(100),
-      supabase.from('blog_posts').select('*').order('created_at', { ascending: false }),
-      supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
-      supabase.from('faqs').select('*').order('created_at', { ascending: false }),
-      supabase.from('site_settings').select('key, value'),
-    ]);
-    if (svcR.data) setServices(svcR.data as Service[]);
-    if (bkR.data) setBookings(bkR.data as unknown as Booking[]);
-    if (blgR.data) setBlog(blgR.data as BlogPost[]);
-    if (testR.data) setTestimonials(testR.data as Testimonial[]);
-    if (faqR.data) setFaqs(faqR.data as FAQ[]);
-    if (setR.data) {
-      const map: Record<string, string> = {};
-      for (const row of setR.data as any[]) {
-        map[row.key] = typeof row.value === 'object' ? JSON.stringify(row.value).replace(/"/g, '') : String(row.value ?? '');
+    setFetchError(null);
+    try {
+      const [svcR, bkR, blgR, testR, faqR, setR] = await Promise.all([
+        supabase.from('services').select('*').order('sort_order'),
+        supabase.from('bookings').select('*, services(name)').order('starts_at', { ascending: false }).limit(100),
+        supabase.from('blog_posts').select('*').order('created_at', { ascending: false }),
+        supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
+        supabase.from('faqs').select('*').order('created_at', { ascending: false }),
+        supabase.from('site_settings').select('key, value'),
+      ]);
+
+      // Verificar erros individualmente
+      const errors = [
+        svcR.error && `Serviços: ${svcR.error.message}`,
+        bkR.error && `Agendamentos: ${bkR.error.message}`,
+        blgR.error && `Blog: ${blgR.error.message}`,
+        testR.error && `Depoimentos: ${testR.error.message}`,
+        faqR.error && `FAQ: ${faqR.error.message}`,
+        setR.error && `Configurações: ${setR.error.message}`,
+      ].filter(Boolean);
+
+      if (errors.length > 0) {
+        console.error('Erros ao carregar CMS:', errors);
+        // Continua com os dados que conseguiu carregar
       }
-      setSettings(map);
+
+      if (svcR.data) setServices(svcR.data as Service[]);
+      if (bkR.data) setBookings(bkR.data as unknown as Booking[]);
+      if (blgR.data) setBlog(blgR.data as BlogPost[]);
+      if (testR.data) setTestimonials(testR.data as Testimonial[]);
+      if (faqR.data) setFaqs(faqR.data as FAQ[]);
+      if (setR.data) {
+        const map: Record<string, string> = {};
+        for (const row of setR.data as any[]) {
+          map[row.key] = typeof row.value === 'object'
+            ? JSON.stringify(row.value).replace(/"/g, '')
+            : String(row.value ?? '');
+        }
+        setSettings(map);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido ao carregar dados.';
+      setFetchError(msg);
+      showToast('Erro ao carregar dados: ' + msg, false);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const setSetting = (key: string, value: string) => {
@@ -221,10 +254,23 @@ export default function CmsStudioPage() {
     { key: 'depoimentos',label: 'Depoimentos & FAQ',icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
+  // Aguarda auth resolver
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#0a0712] flex items-center justify-center text-amber-300 text-sm">
         <Sparkles className="w-5 h-5 mr-2 animate-pulse" /> Carregando CMS…
+      </div>
+    );
+  }
+
+  // Bloqueio visual enquanto redireciona não-admins
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#0a0712] flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-red-400 mx-auto" />
+          <p className="text-sm text-slate-300">Acesso restrito. Redirecionando…</p>
+        </div>
       </div>
     );
   }
@@ -283,6 +329,17 @@ export default function CmsStudioPage() {
         {loading ? (
           <div className="flex items-center justify-center py-32 text-slate-500 text-sm">
             <RefreshCw className="w-5 h-5 mr-2 animate-spin" /> Carregando dados…
+          </div>
+        ) : fetchError ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-4">
+            <AlertCircle className="w-8 h-8 text-red-400" />
+            <p className="text-sm text-red-300 max-w-md text-center">{fetchError}</p>
+            <button
+              onClick={fetchAll}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 text-amber-300 border border-amber-500/30 rounded-lg text-xs hover:bg-amber-500/20 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
+            </button>
           </div>
         ) : (
           <>
