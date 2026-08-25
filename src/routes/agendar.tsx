@@ -17,7 +17,8 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { createBooking } from "@/lib/booking.functions";
-import { createStripeCheckout } from "@/lib/stripe.checkout";
+// Stripe checkout is handled via Supabase Edge Function (no secret key needed in frontend)
+
 
 export const Route = createFileRoute("/agendar")({
   head: () => ({
@@ -148,7 +149,7 @@ function BookingPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const submit = useServerFn(createBooking);
-  const checkout = useServerFn(createStripeCheckout);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -234,27 +235,31 @@ function BookingPage() {
       setConfirmedId(bookingId);
       setStep(4);
 
-      // 2. Cria a Checkout Session real no Stripe e redireciona
+      // 2. Cria a Checkout Session via Supabase Edge Function (chave secreta fica no Supabase)
       setCheckoutLoading(true);
       try {
         const origin = window.location.origin;
-        const stripeRes = await checkout({
-          data: {
-            bookingId,
-            serviceId: selectedService.id,
-            customerName: form.name.trim(),
-            customerEmail: form.email.trim(),
-            successUrl: `${origin}/agendar/sucesso?booking=${bookingId}`,
-            cancelUrl: `${origin}/agendar`,
-          },
-        });
-        // Redireciona automaticamente para o checkout do Stripe
-        window.location.href = stripeRes.checkoutUrl;
+        const { data: edgeData, error: edgeError } = await supabase.functions.invoke(
+          "create-stripe-checkout",
+          {
+            body: {
+              bookingId,
+              serviceId: selectedService.id,
+              customerName: form.name.trim(),
+              customerEmail: form.email.trim(),
+              successUrl: `${origin}/agendar/sucesso?booking=${bookingId}`,
+              cancelUrl: `${origin}/agendar`,
+            },
+          }
+        );
+        if (edgeError || !edgeData?.checkoutUrl) {
+          throw new Error(edgeError?.message ?? "Erro ao gerar link do Stripe.");
+        }
+        // Redireciona automaticamente para o checkout real do Stripe
+        window.location.href = edgeData.checkoutUrl;
       } catch (stripeErr) {
         const msg = stripeErr instanceof Error ? stripeErr.message : "Erro ao gerar link do Stripe.";
-        // Não bloqueia — mostra aviso mas mantém a reserva registrada
         toast.error(msg);
-        setCheckoutUrl(null);
         setCheckoutLoading(false);
       }
     } catch (err) {
