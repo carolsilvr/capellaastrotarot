@@ -737,7 +737,6 @@ function TabServicos({ services, refresh, showToast }: {
       short_description: editData.short_description,
       price_cents: Math.round(Number(editData.price_cents)),
       duration_minutes: Number(editData.duration_minutes),
-      ...(editData.category ? { category: editData.category } : {}),
       active: editData.active,
     }).eq('id', editId);
     if (error) { showToast('Erro ao salvar: ' + error.message, false); return; }
