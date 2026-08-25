@@ -144,7 +144,7 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
 type Tab = 'cms' | 'blog' | 'agenda' | 'servicos' | 'depoimentos';
 
 export default function CmsStudioPage() {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('cms');
 
@@ -628,7 +628,7 @@ function TabAgenda({ bookings, refresh, showToast }: {
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Consulta: ' + b.customer_name)}&dates=${s}/${e}&details=${encodeURIComponent((b.services?.name ?? '') + '\n' + b.customer_email + '\n' + b.customer_phone)}`;
   };
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: Booking['status']) => {
     await supabase.from('bookings').update({ status }).eq('id', id);
     showToast('Status atualizado.');
     refresh();
@@ -737,7 +737,7 @@ function TabServicos({ services, refresh, showToast }: {
       short_description: editData.short_description,
       price_cents: Math.round(Number(editData.price_cents)),
       duration_minutes: Number(editData.duration_minutes),
-      category: editData.category,
+      ...(editData.category ? { category: editData.category } : {}),
       active: editData.active,
     }).eq('id', editId);
     if (error) { showToast('Erro ao salvar: ' + error.message, false); return; }
@@ -769,7 +769,6 @@ function TabServicos({ services, refresh, showToast }: {
       price_cents: Math.round(Number(newPrice) * 100),
       duration_minutes: Number(newDuration),
       active: true,
-      category: newCategory,
       sort_order: (services[services.length - 1]?.sort_order ?? 0) + 10,
     });
     setSaving(false);
@@ -915,7 +914,7 @@ function TabDepoimentos({ testimonials, faqs, refresh, showToast }: {
 
   const addTestimonial = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from('testimonials').insert({ name: tName, role: tRole || null, text: tText, active: true });
+    const { error } = await supabase.from('testimonials').insert({ name: tName, role: tRole || '', text: tText, active: true });
     if (error) { showToast('Erro: ' + error.message, false); return; }
     showToast('Depoimento salvo!');
     setTName(''); setTRole(''); setTText('');
