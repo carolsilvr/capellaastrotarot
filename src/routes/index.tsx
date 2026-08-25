@@ -113,9 +113,10 @@ function Home() {
     supabase.from('site_settings').select('*').then(({ data }) => {
       if (data) {
         data.forEach((item: any) => {
-          if (item.key === 'announcement_banner') setAnnouncementBanner(typeof item.value === 'string' ? item.value : JSON.stringify(item.value).replace(/"/g, ''));
-          if (item.key === 'announcement_active') setAnnouncementActive(Boolean(item.value));
-          if (item.key === 'hero_title') setCustomHeroTitle(typeof item.value === 'string' ? item.value : JSON.stringify(item.value).replace(/"/g, ''));
+          const val = typeof item.value === 'string' ? item.value : JSON.stringify(item.value).replace(/"/g, '');
+          if (item.key === 'announcement_banner') setAnnouncementBanner(val);
+          if (item.key === 'announcement_active') setAnnouncementActive(val === 'true');
+          if (item.key === 'hero_title') setCustomHeroTitle(val);
         });
       }
     });
@@ -163,7 +164,7 @@ function Home() {
             {isAdmin ? (
 
               <a
-                href="/admin"
+                href="/cms"
                 className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-purple-600 text-white font-medium px-4 py-2 text-sm shadow-md hover:opacity-90 transition-all border border-amber-300/40"
               >
                 ✨ painel admin (cms)

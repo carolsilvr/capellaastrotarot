@@ -470,20 +470,20 @@ function TabBlog({ posts, refresh, showToast }: {
   const [coverUrl, setCoverUrl] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const handlePublish = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (publishNow: boolean) => {
+    if (!title.trim()) { showToast('Preencha o título do artigo.', false); return; }
     setSaving(true);
     const slug = slugify(title) + '-' + Date.now().toString(36);
     const { error } = await supabase.from('blog_posts').insert({
       title, slug, excerpt, content, category,
       cover_image_url: coverUrl || null,
-      published: true,
-      reading_minutes: Math.max(1, Math.ceil(content.split(' ').length / 200)),
+      published: publishNow,
+      reading_minutes: Math.max(1, Math.ceil((content.split(' ').length || 1) / 200)),
       author_name: 'Capella',
     });
     setSaving(false);
-    if (error) { showToast('Erro ao publicar: ' + error.message, false); return; }
-    showToast('Artigo publicado com sucesso!');
+    if (error) { showToast('Erro ao salvar: ' + error.message, false); return; }
+    showToast(publishNow ? 'Artigo publicado!' : 'Rascunho salvo!');
     setTitle(''); setExcerpt(''); setContent(''); setCoverUrl('');
     refresh();
   };
@@ -506,7 +506,7 @@ function TabBlog({ posts, refresh, showToast }: {
       {/* Editor */}
       <div className="lg:col-span-1 bg-[#130d21] border border-purple-900/40 rounded-2xl p-6 h-fit space-y-4">
         <h2 className="text-lg font-serif text-amber-100">Novo Artigo</h2>
-        <form onSubmit={handlePublish} className="space-y-4">
+        <div className="space-y-4">
           <Field label="Título"><Input value={title} onChange={setTitle} placeholder="Título do artigo" /></Field>
           <Field label="Categoria">
             <select value={category} onChange={e => setCategory(e.target.value)} className="w-full px-3 py-2 bg-[#0a0712] border border-purple-900/50 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-amber-400/70">
@@ -525,13 +525,31 @@ function TabBlog({ posts, refresh, showToast }: {
           <Field label="URL da Imagem de Capa (opcional)">
             <Input value={coverUrl} onChange={setCoverUrl} placeholder="https://…" />
           </Field>
-          <SaveBtn loading={saving} label="Publicar Artigo" />
-        </form>
+          {/* Dois botões: Rascunho e Publicar */}
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => handleSave(false)}
+              disabled={saving}
+              className="flex-1 py-2.5 text-xs font-semibold rounded-xl bg-slate-700/60 hover:bg-slate-600/60 text-slate-200 border border-slate-600/40 transition-all disabled:opacity-40"
+            >
+              {saving ? 'Salvando…' : 'Salvar Rascunho'}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSave(true)}
+              disabled={saving}
+              className="flex-1 py-2.5 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/10 transition-all disabled:opacity-40"
+            >
+              {saving ? 'Publicando…' : 'Publicar ✨'}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Posts List */}
       <div className="lg:col-span-2 space-y-4">
-        <h2 className="text-lg font-serif text-amber-100">Artigos Publicados ({posts.length})</h2>
+        <h2 className="text-lg font-serif text-amber-100">Artigos ({posts.length})</h2>
         {posts.length === 0 && (
           <div className="bg-[#130d21] border border-purple-900/40 rounded-2xl p-8 text-center text-slate-500 text-sm">
             Nenhum artigo ainda. Crie seu primeiro post acima!
@@ -547,7 +565,9 @@ function TabBlog({ posts, refresh, showToast }: {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">
                   {post.category}
                 </span>
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${post.published ? 'text-emerald-300 bg-emerald-500/10' : 'text-slate-400 bg-slate-500/10'}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                  post.published ? 'text-emerald-300 bg-emerald-500/10' : 'text-slate-400 bg-slate-500/10'
+                }`}>
                   {post.published ? 'Publicado' : 'Rascunho'}
                 </span>
               </div>
@@ -555,7 +575,13 @@ function TabBlog({ posts, refresh, showToast }: {
               <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{post.excerpt}</p>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <button onClick={() => togglePublished(post)} title={post.published ? 'Ocultar' : 'Publicar'} className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-amber-300 transition-colors">
+              <button
+                onClick={() => togglePublished(post)}
+                title={post.published ? 'Mover para Rascunho' : 'Publicar'}
+                className={`p-1.5 rounded-lg hover:bg-white/5 transition-colors ${
+                  post.published ? 'text-emerald-400 hover:text-slate-400' : 'text-slate-400 hover:text-emerald-400'
+                }`}
+              >
                 <Eye className="w-4 h-4" />
               </button>
               <button onClick={() => deletePost(post.id)} title="Excluir" className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-red-400 transition-colors">
@@ -581,6 +607,19 @@ function TabAgenda({ bookings, refresh, showToast }: {
     confirmed: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/30',
     cancelled: 'text-red-300 bg-red-500/10 border-red-500/30',
     completed: 'text-slate-300 bg-slate-500/10 border-slate-500/30',
+  };
+
+  const paymentColors: Record<string, string> = {
+
+    unpaid:     'text-slate-400 bg-slate-500/10 border-slate-500/30',
+    processing: 'text-blue-300 bg-blue-500/10 border-blue-500/30',
+    paid:       'text-emerald-300 bg-emerald-500/10 border-emerald-500/30',
+    refunded:   'text-purple-300 bg-purple-500/10 border-purple-500/30',
+    failed:     'text-red-300 bg-red-500/10 border-red-500/30',
+  };
+
+  const paymentLabels: Record<string, string> = {
+    unpaid: 'não pago', processing: 'processando', paid: 'pago ✔', refunded: 'reembolsado', failed: 'falhou',
   };
 
   const gcalUrl = (b: Booking) => {
@@ -625,6 +664,9 @@ function TabAgenda({ bookings, refresh, showToast }: {
                       <span className="text-sm font-semibold text-slate-200">{b.customer_name}</span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${statusColors[b.status] ?? 'text-slate-400 bg-slate-500/10 border-slate-500/30'}`}>
                         {b.status}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${paymentColors[b.payment_status] ?? paymentColors.unpaid}`}>
+                        {paymentLabels[b.payment_status] ?? b.payment_status}
                       </span>
                     </div>
                     <div className="text-xs text-slate-400 space-y-0.5">
@@ -770,9 +812,14 @@ function TabServicos({ services, refresh, showToast }: {
                             <option value="astrologia">Astrologia</option>
                           </select>
                         </Field>
-                        <Field label="Preço (centavos — Ex: 2700 = R$27)">
-                          <Input value={String(editData.price_cents ?? '')} onChange={v => setEditData(d => ({ ...d, price_cents: Number(v) }))} type="number" />
-                        </Field>
+                        <Field label="Preço (R$)">
+                           <Input
+                             value={String((editData.price_cents ?? 0) / 100)}
+                             onChange={v => setEditData(d => ({ ...d, price_cents: Math.round(Number(v) * 100) }))}
+                             type="number"
+                             placeholder="Ex: 27"
+                           />
+                         </Field>
                         <Field label="Duração (minutos)">
                           <Input value={String(editData.duration_minutes ?? '')} onChange={v => setEditData(d => ({ ...d, duration_minutes: Number(v) }))} type="number" />
                         </Field>
