@@ -49,6 +49,7 @@ type Service = {
   short_description: string;
   duration_minutes: number;
   price_cents: number;
+  category?: string | null;
 };
 
 type AvailabilityRule = { weekday: number; start_time: string; end_time: string };

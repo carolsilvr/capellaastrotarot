@@ -26,7 +26,7 @@ export const createStripeCheckout = createServerFn({ method: "POST" })
 
     // Importar Stripe dinamicamente (apenas servidor)
     const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe(secretKey, { apiVersion: "2025-06-30.basil" });
+    const stripe = new Stripe(secretKey, { apiVersion: "2025-06-30.basil" as never });
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -76,7 +76,7 @@ export const createStripeCheckout = createServerFn({ method: "POST" })
     // Salvar o session_id na reserva para webhook de confirmação posterior
     await supabaseAdmin
       .from("bookings")
-      .update({ stripe_session_id: session.id })
+      .update({ payment_reference: session.id })
       .eq("id", data.bookingId);
 
     return { checkoutUrl: session.url, sessionId: session.id };
