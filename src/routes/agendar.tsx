@@ -614,8 +614,7 @@ function BookingPage() {
                   </p>
 
                   <div className="pt-4 border-t border-border/60 text-xs text-muted-foreground space-y-2">
-                    <p className="text-amber-300 font-medium">⚠️ Configure a variável STRIPE_SECRET_KEY para ativar o pagamento automático.</p>
-                    <p>Acesse o Stripe Dashboard → Developers → API Keys → Secret key e adicione no seu painel do Lovable/Vercel.</p>
+                    <p>Se a página de pagamento não abrir automaticamente, atualize esta tela ou entre em contato — sua reserva já está registrada com o código acima.</p>
                   </div>
                 </div>
 
