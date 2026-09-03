@@ -236,28 +236,25 @@ function BookingPage() {
       setConfirmedId(bookingId);
       setStep(4);
 
-      // 2. Cria a Checkout Session via Supabase Edge Function (chave secreta fica no Supabase)
+      // 2. Cria a Checkout Session no servidor (chave secreta nunca vai ao navegador)
       setCheckoutLoading(true);
       try {
         const origin = window.location.origin;
-        const { data: edgeData, error: edgeError } = await supabase.functions.invoke(
-          "create-stripe-checkout",
-          {
-            body: {
-              bookingId,
-              serviceId: selectedService.id,
-              customerName: form.name.trim(),
-              customerEmail: form.email.trim(),
-              successUrl: `${origin}/agendar/sucesso?booking=${bookingId}`,
-              cancelUrl: `${origin}/agendar`,
-            },
-          }
-        );
-        if (edgeError || !edgeData?.checkoutUrl) {
-          throw new Error(edgeError?.message ?? "Erro ao gerar link do Stripe.");
+        const checkout = await createStripeCheckout({
+          data: {
+            bookingId,
+            serviceId: selectedService.id,
+            customerName: form.name.trim(),
+            customerEmail: form.email.trim(),
+            successUrl: `${origin}/agendar/sucesso?booking=${bookingId}`,
+            cancelUrl: `${origin}/agendar`,
+          },
+        });
+        if (!checkout?.checkoutUrl) {
+          throw new Error("Erro ao gerar link do Stripe.");
         }
         // Redireciona automaticamente para o checkout real do Stripe
-        window.location.href = edgeData.checkoutUrl;
+        window.location.href = checkout.checkoutUrl;
       } catch (stripeErr) {
         const msg = stripeErr instanceof Error ? stripeErr.message : "Erro ao gerar link do Stripe.";
         toast.error(msg);
