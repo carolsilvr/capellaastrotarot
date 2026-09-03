@@ -15,12 +15,12 @@ export type CreateCheckoutInput = z.infer<typeof CreateCheckoutSchema>;
 export const createStripeCheckout = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => CreateCheckoutSchema.parse(data))
   .handler(async ({ data }) => {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
+    const secretKey =
+      process.env["STRIPE_LIVE_API_KEY"] || process.env["STRIPE_SECRET_KEY"];
 
     if (!secretKey || secretKey.includes("INSIRA")) {
       throw new Error(
-        "A chave secreta do Stripe (STRIPE_SECRET_KEY) não está configurada no servidor. " +
-        "Adicione-a nas variáveis de ambiente do seu projeto no Lovable/Vercel."
+        "A chave secreta do Stripe não está configurada no servidor."
       );
     }
 
@@ -44,7 +44,7 @@ export const createStripeCheckout = createServerFn({ method: "POST" })
     // Criar a Checkout Session no Stripe
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      // métodos habilitados no painel do Stripe (cartão, pix, etc.)
       customer_email: data.customerEmail,
       client_reference_id: data.bookingId,
       metadata: {
