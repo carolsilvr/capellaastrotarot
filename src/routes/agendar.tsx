@@ -17,7 +17,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { createBooking } from "@/lib/booking.functions";
-// Stripe checkout is handled via Supabase Edge Function (no secret key needed in frontend)
+import { createStripeCheckout } from "@/lib/stripe.checkout";
 
 
 export const Route = createFileRoute("/agendar")({
