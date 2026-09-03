@@ -44,7 +44,7 @@ export const createStripeCheckout = createServerFn({ method: "POST" })
     // Criar a Checkout Session no Stripe
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
+      // métodos habilitados no painel do Stripe (cartão, pix, etc.)
       customer_email: data.customerEmail,
       client_reference_id: data.bookingId,
       metadata: {
